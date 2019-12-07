@@ -1,16 +1,22 @@
 package main
 
 import (
-	"object-storage-go/data-serverage-go/data-server/heartbeat"
-	"object-storage-go/data-serverage-go/data-server/locate"
-	"object-storage-go/data-serverage-go/data-server/objects"
+	"object-storage-go/data-server/heartbeat"
+	"object-storage-go/data-server/locate"
+	"object-storage-go/data-server/objects"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"log"
 	"net/http"
 	"os"
 )
 
+func init()  {
+
+}
+
 func main() {
+
+
 
 	go heartbeat.HeartBeat()
 	go locate.StartLocate()

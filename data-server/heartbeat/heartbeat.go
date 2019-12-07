@@ -1,7 +1,7 @@
 package heartbeat
 
 import (
-	"object-storage-go/data-serverage-go/data-server/rabbitmq"
+	"object-storage-go/data-server/rabbitmq"
 	"os"
 	"time"
 )
