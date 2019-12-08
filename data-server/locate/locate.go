@@ -1,7 +1,8 @@
 package locate
 
 import (
-	"object-storage-go/data-serverage-go/data-server/rabbitmq"
+	"object-storage-go/data-server/model"
+	"object-storage-go/data-server/rabbitmq"
 	"os"
 	"strconv"
 )
@@ -12,7 +13,7 @@ func Locate(name string) bool {
 }
 
 func StartLocate()  {
-	mq := rabbitmq.New(os.Getenv("RABBITMQ_SERVER"))
+	mq := rabbitmq.New(rabbitmq.GetRabbitMqDialUrl())
 	defer mq.Close()
 
 	mq.Bind("dataServer")
@@ -25,8 +26,10 @@ func StartLocate()  {
 			panic(err)
 		}
 
-		if Locate(os.Getenv("STORAGE_ROOT") + "/objects/" + str) {
-			mq.Send(msg.ReplyTo, os.Getenv("LISTEN_ADDRESS"))
+		if Locate(model.Config.DataServerConfig.StorageRoot + "/objects/" + str) {
+			listenAddress := model.Config.DataServerConfig.DataServerAddress + ":" +
+				string(model.Config.DataServerConfig.DataServerPort)
+			mq.Send(msg.ReplyTo, listenAddress)
 		}
 	}
 }

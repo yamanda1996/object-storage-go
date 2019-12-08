@@ -2,11 +2,15 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	log "github.com/sirupsen/logrus"
-	"object-storage-go/data-server/utils"
+	"object-storage-go/data-server/heartbeat"
 	"object-storage-go/data-server/model"
+	"object-storage-go/data-server/objects"
+	"object-storage-go/data-server/utils"
 	"os"
+	"strconv"
 )
 
 
@@ -26,9 +30,12 @@ func init() {
 
 func main() {
 	log.Debug("start main")
-	log.Debug(model.Config.DataServerConfig.RabbitMqAddress)
+	go heartbeat.HeartBeat()
 
+	router := gin.Default()
+	router.GET("/objects/:filename", objects.GetObject)
 
+	router.Run(":" + strconv.Itoa(model.Config.DataServerConfig.DataServerPort))
 	//go heartbeat.HeartBeat()
 	//go locate.StartLocate()
 	//

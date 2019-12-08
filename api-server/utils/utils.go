@@ -4,8 +4,9 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/gcfg.v1"
-	"object-storage-go/data-server/constant"
-	"object-storage-go/data-server/model"
+	"object-storage-go/api-server/model"
+	"object-storage-go/api-server/constant"
+
 	"os"
 )
 
@@ -23,9 +24,9 @@ func InitLog() error {
 
 func InitConfig() error {
 
-	err := gcfg.ReadFileInto(&model.Config, constant.DATA_SERVER_CONFIG_FILEPATH)
+	err := gcfg.ReadFileInto(&model.Config, constant.API_SERVER_CONFIG_FILEPATH)
 	if err != nil {
-		log.Errorf("read config file [%s] failed", constant.DATA_SERVER_CONFIG_FILEPATH)
+		log.Errorf("read config file [%s] failed", constant.API_SERVER_CONFIG_FILEPATH)
 		os.Exit(1)
 	}
 	return nil

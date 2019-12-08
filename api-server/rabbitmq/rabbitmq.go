@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
-	"object-storage-go/data-server/model"
+	"object-storage-go/api-server/model"
 	"strconv"
 	"strings"
 )
@@ -16,7 +16,6 @@ func GetRabbitMqDialUrl() string {
 	if len(RabbitMqDialUrl) == 0 {
 		var builder strings.Builder
 		builder.WriteString("amqp://")
-		log.Debugf("rabbitmq ")
 		builder.WriteString(model.Config.RabbitMqConfig.RabbitMqUser)
 		builder.WriteString(":" + model.Config.RabbitMqConfig.RabbitMqPwd)
 		builder.WriteString("@" + model.Config.RabbitMqConfig.RabbitMqAddress)
@@ -26,7 +25,6 @@ func GetRabbitMqDialUrl() string {
 	return RabbitMqDialUrl
 }
 
-
 type RabbitMQ struct {
 	channel 		*amqp.Channel
 	Name 			string
@@ -35,7 +33,6 @@ type RabbitMQ struct {
 
 func New(url string) *RabbitMQ {
 
-	log.Debugf("dial url [%s]", url)
 	connection, err := amqp.Dial(url)
 	if err != nil {
 		log.Errorf("connect to mq failed, dial url [%s]", url)
@@ -95,7 +92,7 @@ func (q *RabbitMQ) Send(queue string, body interface{})  {
 		amqp.Publishing{
 			ReplyTo: q.Name,
 			Body:    []byte(str),
-	})
+		})
 	if err != nil {
 		panic(err)
 	}
@@ -114,7 +111,7 @@ func (q *RabbitMQ) Publish(exchange string, body interface{})  {
 		amqp.Publishing{
 			ReplyTo: q.Name,
 			Body:    []byte(str),
-	})
+		})
 	if err != nil {
 		panic(err)
 	}
@@ -136,6 +133,6 @@ func (q *RabbitMQ) Consume() <-chan amqp.Delivery {
 	return ch
 }
 
-func (q *RabbitMQ) Close()  {
+func (q *RabbitMQ) Close() {
 	q.channel.Close()
 }

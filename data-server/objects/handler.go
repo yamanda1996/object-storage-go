@@ -1,8 +1,9 @@
 package objects
 
 import (
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -48,4 +49,8 @@ func get(w http.ResponseWriter, r *http.Request)  {
 	}
 	defer file.Close()
 	io.Copy(w, file)
+}
+
+func GetObject(c *gin.Context)  {
+	log.Debug("start listening get objects")
 }

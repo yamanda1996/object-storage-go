@@ -1,9 +1,10 @@
 package object
 
 import (
-	"object-storage-go/api-serverrage-go/api-server/heartbeat"
-	"object-storage-go/api-serverrage-go/api-server/locate"
-	"object-storage-go/api-serverrage-go/api-server/objectstream"
+	"github.com/gin-gonic/gin"
+	"object-storage-go/api-server/heartbeat"
+	"object-storage-go/api-server/locate"
+	"object-storage-go/api-server/objectstream"
 	"fmt"
 	"io"
 	"log"
@@ -77,5 +78,9 @@ func getStream(object string) (*objectstream.GetStream, error) {
 		return nil, fmt.Errorf("object %s locate failed", object)
 	}
 	return objectstream.NewGetStream(server, object)
+}
+
+func GetFile(conetxt *gin.Context)  {
+
 }
 

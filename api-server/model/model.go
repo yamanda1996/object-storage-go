@@ -2,7 +2,7 @@ package model
 
 var Config = struct {
 	RabbitMqConfig 					RabbitMqConfig
-	DataServerConfig 				DataServerConfig
+	ApiServerConfig 				ApiServerConfig
 }{}
 
 type RabbitMqConfig struct {
@@ -12,10 +12,9 @@ type RabbitMqConfig struct {
 	RabbitMqPwd 					string
 }
 
-type DataServerConfig struct {
-	DataServerAddress 				string
-	DataServerPort 					int
-	StorageRoot						string
+type ApiServerConfig struct {
+	ApiServerAddress 				string
+	ApiServerPort 					int
 }
 
 

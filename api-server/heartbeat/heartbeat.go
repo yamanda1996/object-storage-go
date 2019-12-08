@@ -1,9 +1,9 @@
 package heartbeat
 
 import (
-	"object-storage-go/data-server/rabbitmq"
+	log "github.com/sirupsen/logrus"
 	"math/rand"
-	"os"
+	"object-storage-go/api-server/rabbitmq"
 	"strconv"
 	"sync"
 	"time"
@@ -13,7 +13,8 @@ var dataServers = make(map[string]time.Time)
 var mutex sync.Mutex
 
 func ListenHeartBeat()  {
-	mq := rabbitmq.New(os.Getenv("RABBITMQ_SERVER"))
+
+	mq := rabbitmq.New(rabbitmq.GetRabbitMqDialUrl())
 	defer mq.Close()
 
 	mq.Bind("apiServer")
@@ -23,9 +24,11 @@ func ListenHeartBeat()  {
 
 	//收到消息之后，更新map中对应的时间
 	for msg := range ch {
+		log.Debugf("api server receive heart beat [%s]", string(msg.Body))
 		dataServer, err := strconv.Unquote(string(msg.Body))
 		if err != nil {
-			panic(err)
+			log.Error("heart beat receive msg failed")
+			continue
 		}
 
 		//操作公有对象，必须加锁
@@ -51,7 +54,7 @@ func removeExpiredDataServer()  {
 	}
 }
 
-// 获取所有的dataServer信息
+//获取所有的dataServer信息
 func getDataServers() []string {
 	mutex.Lock()
 	defer mutex.Unlock()

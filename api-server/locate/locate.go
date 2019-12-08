@@ -1,14 +1,25 @@
 package locate
 
 import (
-	"object-storage-go/data-server/rabbitmq"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"net/http"
-	"os"
+	"object-storage-go/api-server/rabbitmq"
 	"strconv"
 	"strings"
 	"time"
 )
+
+func LocateFile(context *gin.Context)  {
+	name := context.Param("filename")
+	l := Locate(name)
+	if l == "" {
+		context.String(http.StatusNotFound, "can not find file %s", name)
+	} else {
+		context.String(http.StatusOK, "find %s success in %s", name, l)
+	}
+}
 
 func Handler(w http.ResponseWriter, r *http.Request)  {
 
@@ -32,22 +43,18 @@ func Handler(w http.ResponseWriter, r *http.Request)  {
 }
 
 func Locate(name string) string {
-	mq := rabbitmq.New(os.Getenv("RABBITMQ_SERVER"))
-	defer mq.Close()
-
+	mq := rabbitmq.New(rabbitmq.GetRabbitMqDialUrl())
 	mq.Publish("dataServer", name)
 
-	ch := mq.Consume()
-	//1秒之后关闭临时队列，避免无限期的等待，如果不写，则下面的msg可能就一致接收不到，就一直等下去
-	go func() {
-		time.Sleep(time.Duration(1) * time.Second)
-		mq.Close()
-	}()
-	msg := <- ch
 
-	s, _ := strconv.Unquote(string(msg.Body))
-
-	return s
+	select {
+	case msg := <- mq.Consume():
+		s, _ := strconv.Unquote(string(msg.Body))
+		return s
+	case <- time.After(time.Duration(1) * time.Second):
+		log.Debugf("data server can not find file [%s]", name)
+		return ""
+	}
 }
 
 func Exist(name string) bool {
