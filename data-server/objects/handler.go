@@ -5,6 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
+	"object-storage-go/data-server/model"
 	"os"
 	"strings"
 )
@@ -51,6 +52,20 @@ func get(w http.ResponseWriter, r *http.Request)  {
 	io.Copy(w, file)
 }
 
-func GetObject(c *gin.Context)  {
+func GetObject(context *gin.Context)  {
 	log.Debug("start listening get objects")
+}
+
+func UploadObject(context *gin.Context)  {
+	name := context.Param("filename")
+	log.Debugf("upload file [%s]", name)
+	file, err := os.Create(model.Config.DataServerConfig.StorageRoot + "/objects/" + name)
+	if err != nil {
+		log.Errorf("data server create file failed")
+		context.String(http.StatusServiceUnavailable, "create file [%s] failed", name)
+	}
+
+	defer file.Close()
+
+	io.Copy(file, context.Request.Body)
 }

@@ -37,10 +37,10 @@ func main()  {
 	router.GET("/objects/:filename", object.GetFile)
 	router.GET("/locate/:filename", locate.LocateFile)
 
+	router.POST("/objects/:filename", object.UploadFile)
+
 	router.Run(":" + strconv.Itoa(model.Config.ApiServerConfig.ApiServerPort))
 
-	//http.HandleFunc("/objects/", object.Handler)
-	//http.HandleFunc("/locate/", locate.Handler)
 	//
 	//log.Fatal(http.ListenAndServe(os.Getenv("LISTEN_ADDRESS"), nil))
 }

@@ -2,32 +2,66 @@ package object
 
 import (
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"object-storage-go/api-server/heartbeat"
 	"object-storage-go/api-server/locate"
 	"object-storage-go/api-server/objectstream"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
 
-func Handler(w http.ResponseWriter, r *http.Request)  {
-	m := r.Method
-
-	if m == http.MethodGet {
-		get(w,r)
-		return
+func UploadFile(context *gin.Context)  {
+	name := context.Param("filename")
+	if len(name) <= 0 {
+		context.String(http.StatusNotFound, "request parameter filename [%s] invalid", name)
 	}
 
-	if m == http.MethodPut {
-		put(w,r)
-		return
-	}
-
-	w.WriteHeader(http.StatusMethodNotAllowed)
-	return
+	file, _ := context.FormFile("file")
+	r, _ := file.Open()
+	status, err := storeObject(r, name)
+	context.String(status, err.Error())
 }
+
+func GetFile(conetxt *gin.Context)  {
+
+}
+
+func storeObject(r io.Reader, name string) (int, error) {
+	stream, err := putStream(name)
+	if err != nil {
+		log.Errorf("create put stream failed")
+		return http.StatusServiceUnavailable, err
+	}
+	io.Copy(stream, r)
+	err = stream.Close()
+	if err != nil {
+		log.Errorf("closer put stream failed")
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, nil
+}
+
+func putStream(object string) (*objectstream.PutStream, error) {
+	server := heartbeat.ChooseRandomDataServer()
+	if server == "" {
+		log.Errorf("select data server failed")
+		return nil, fmt.Errorf("cannot find any dataserver")
+	}
+	log.Debugf("select data server [%s]", server)
+	return objectstream.NewPutStream(server, object), nil
+}
+
+func getStream(object string) (*objectstream.GetStream, error) {
+	server := locate.Locate(object)
+	if server == "" {
+		return nil, fmt.Errorf("object %s locate failed", object)
+	}
+	return objectstream.NewGetStream(server, object)
+}
+
+
 
 func get(w http.ResponseWriter, r *http.Request)  {
 	object := strings.Split(r.URL.EscapedPath(), "/")[2]
@@ -49,38 +83,6 @@ func put(w http.ResponseWriter, r *http.Request)  {
 	w.WriteHeader(respCode)
 }
 
-func storeObject(r io.Reader, object string) (int ,error) {
-	putStream, err := putStream(object)
-	if err != nil {
-		return http.StatusServiceUnavailable, err
-	}
-	io.Copy(putStream, r)
 
-	err = putStream.Close()
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	return http.StatusOK, nil
-}
 
-func putStream(object string) (*objectstream.PutStream, error) {
-	server := heartbeat.ChooseRandomDataServer()
-	if server == "" {
-		return nil, fmt.Errorf("cannot find any dataserver")
-	}
-
-	return objectstream.NewPutStream(server, object), nil
-}
-
-func getStream(object string) (*objectstream.GetStream, error) {
-	server := locate.Locate(object)
-	if server == "" {
-		return nil, fmt.Errorf("object %s locate failed", object)
-	}
-	return objectstream.NewGetStream(server, object)
-}
-
-func GetFile(conetxt *gin.Context)  {
-
-}
 

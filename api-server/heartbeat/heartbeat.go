@@ -24,7 +24,6 @@ func ListenHeartBeat()  {
 
 	//收到消息之后，更新map中对应的时间
 	for msg := range ch {
-		log.Debugf("api server receive heart beat [%s]", string(msg.Body))
 		dataServer, err := strconv.Unquote(string(msg.Body))
 		if err != nil {
 			log.Error("heart beat receive msg failed")

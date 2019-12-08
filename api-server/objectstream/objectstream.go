@@ -2,6 +2,7 @@ package objectstream
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 )
@@ -17,15 +18,16 @@ func NewPutStream(server, object string) *PutStream {
 	c := make(chan error)
 
 	go func() {
-		request, err := http.NewRequest("PUT", "http://"+server+"/objects/"+object, reader)
+		request, err := http.NewRequest("POST", "http://"+server+"/objects/"+object, reader)
 		if err != nil {
-			panic(err)
+			log.Errorf("create request to data server [%s] failed", server)
 		}
 		client := http.Client{}
 
 		response, err := client.Do(request)
 		if err != nil || response.StatusCode != http.StatusOK {
-			err = fmt.Errorf("dataServer return http code %d", response.Status)
+			err = fmt.Errorf("dataServer return http code %d", response.StatusCode)
+			log.Errorf("data server return failed")
 		}
 		c <- err
 	}()

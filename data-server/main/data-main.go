@@ -34,13 +34,9 @@ func main() {
 
 	router := gin.Default()
 	router.GET("/objects/:filename", objects.GetObject)
+	router.POST("/objects/:filename", objects.UploadObject)
 
 	router.Run(":" + strconv.Itoa(model.Config.DataServerConfig.DataServerPort))
-	//go heartbeat.HeartBeat()
-	//go locate.StartLocate()
-	//
-	//http.HandleFunc("/object/", objects.Handler)
-	//log.Fatal(http.ListenAndServe(os.Getenv("LISTEN_ADDRESS"), nil))
 
 }
 

@@ -16,10 +16,10 @@ func HeartBeat()  {
 	builder.WriteString(model.Config.DataServerConfig.DataServerAddress + ":")
 	builder.WriteString(strconv.Itoa(model.Config.DataServerConfig.DataServerPort))
 	listenAddress := builder.String()
+	log.Debugf("data server start heart beat")
 
 	for {
 		mq.Publish("apiServer", listenAddress)
-		log.Debugf("data server [%s] send heart beat", model.Config.DataServerConfig.DataServerAddress)
 		time.Sleep(time.Duration(5) * time.Second)
 	}
 }
