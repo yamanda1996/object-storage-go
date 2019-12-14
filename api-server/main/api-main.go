@@ -34,13 +34,10 @@ func main()  {
 	go heartbeat.ListenHeartBeat()
 	router := gin.Default()
 
-	router.GET("/objects/:filename", object.GetFile)
+	router.GET("/objects/:filename", object.DownloadFile)
 	router.GET("/locate/:filename", locate.LocateFile)
-
 	router.POST("/objects/:filename", object.UploadFile)
 
 	router.Run(":" + strconv.Itoa(model.Config.ApiServerConfig.ApiServerPort))
 
-	//
-	//log.Fatal(http.ListenAndServe(os.Getenv("LISTEN_ADDRESS"), nil))
 }

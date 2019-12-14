@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"object-storage-go/data-server/model"
 	"os"
@@ -53,10 +54,19 @@ func get(w http.ResponseWriter, r *http.Request)  {
 }
 
 func GetObject(context *gin.Context)  {
-	log.Debug("start listening get objects")
+	filename := context.Param("filename")
+	log.Infof("start to get object file [%s]", filename)
+
+	f, err := ioutil.ReadFile(model.Config.DataServerConfig.StorageRoot + "/objects/" + filename)
+	if err != nil {
+		log.Errorf("read file [%s] failed", filename)
+		context.String(http.StatusNotFound, "get file [%s] failed", filename)
+	}
+	log.Infof("read content [%s] from file", string(f))
+	context.Data(http.StatusOK, "fileType", f)
 }
 
-func UploadObject(context *gin.Context)  {
+func PutObject(context *gin.Context)  {
 	name := context.Param("filename")
 	log.Debugf("upload file [%s]", name)
 	file, err := os.Create(model.Config.DataServerConfig.StorageRoot + "/objects/" + name)

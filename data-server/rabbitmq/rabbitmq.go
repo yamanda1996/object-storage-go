@@ -16,7 +16,6 @@ func GetRabbitMqDialUrl() string {
 	if len(RabbitMqDialUrl) == 0 {
 		var builder strings.Builder
 		builder.WriteString("amqp://")
-		log.Debugf("rabbitmq ")
 		builder.WriteString(model.Config.RabbitMqConfig.RabbitMqUser)
 		builder.WriteString(":" + model.Config.RabbitMqConfig.RabbitMqPwd)
 		builder.WriteString("@" + model.Config.RabbitMqConfig.RabbitMqAddress)

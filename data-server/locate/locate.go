@@ -1,6 +1,7 @@
 package locate
 
 import (
+	log "github.com/sirupsen/logrus"
 	"object-storage-go/data-server/model"
 	"object-storage-go/data-server/rabbitmq"
 	"os"
@@ -9,7 +10,7 @@ import (
 
 func Locate(name string) bool {
 	_, err := os.Stat(name)
-	return os.IsExist(err)
+	return err == nil
 }
 
 func StartLocate()  {
@@ -25,10 +26,11 @@ func StartLocate()  {
 		if err != nil {
 			panic(err)
 		}
-
+		log.Infof("data server receive %s from rmq", str)
 		if Locate(model.Config.DataServerConfig.StorageRoot + "/objects/" + str) {
 			listenAddress := model.Config.DataServerConfig.DataServerAddress + ":" +
-				string(model.Config.DataServerConfig.DataServerPort)
+				strconv.Itoa(model.Config.DataServerConfig.DataServerPort)
+			log.Infof("data server find object, address %s", listenAddress)
 			mq.Send(msg.ReplyTo, listenAddress)
 		}
 	}

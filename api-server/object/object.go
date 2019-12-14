@@ -1,15 +1,15 @@
 package object
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"object-storage-go/api-server/heartbeat"
 	"object-storage-go/api-server/locate"
 	"object-storage-go/api-server/objectstream"
-	"fmt"
-	"io"
-	"net/http"
-	"strings"
 )
 
 func UploadFile(context *gin.Context)  {
@@ -24,8 +24,23 @@ func UploadFile(context *gin.Context)  {
 	context.String(status, err.Error())
 }
 
-func GetFile(conetxt *gin.Context)  {
+func DownloadFile(context *gin.Context)  {
+	filename := context.Param("filename")
+	if len(filename) <= 0 {
+		context.String(http.StatusNotFound, "request parameter filename [%s] invalid", filename)
+	}
+	stream, err := getStream(filename)
+	if err != nil {
+		context.String(http.StatusNotFound, "file [%s] not found", filename)
+	}
 
+	b, err := ioutil.ReadAll(stream)
+	log.Infof("receive content [%s] from data-server", string(b))
+	if err != nil {
+		log.Errorf("write to bytes failed")
+		context.String(http.StatusInternalServerError, "internal server error")
+	}
+	context.Data(http.StatusOK, "fileType", b)
 }
 
 func storeObject(r io.Reader, name string) (int, error) {
@@ -60,29 +75,4 @@ func getStream(object string) (*objectstream.GetStream, error) {
 	}
 	return objectstream.NewGetStream(server, object)
 }
-
-
-
-func get(w http.ResponseWriter, r *http.Request)  {
-	object := strings.Split(r.URL.EscapedPath(), "/")[2]
-	stream, err := getStream(object)
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-	io.Copy(w, stream)
-}
-
-func put(w http.ResponseWriter, r *http.Request)  {
-	object := strings.Split(r.URL.EscapedPath(), "/")[2]
-	respCode, err := storeObject(r.Body, object)
-	if err != nil {
-		log.Println(err)
-	}
-	w.WriteHeader(respCode)
-}
-
-
-
 
