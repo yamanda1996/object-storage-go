@@ -3,6 +3,7 @@ package model
 var Config = struct {
 	RabbitMqConfig 					RabbitMqConfig
 	ApiServerConfig 				ApiServerConfig
+	ElasticSearchConfig 			ElasticSearchConfig
 }{}
 
 type RabbitMqConfig struct {
@@ -15,6 +16,11 @@ type RabbitMqConfig struct {
 type ApiServerConfig struct {
 	ApiServerAddress 				string
 	ApiServerPort 					int
+}
+
+type ElasticSearchConfig struct {
+	ElasticSearchAddress			string
+	ElasticSearchPort				int
 }
 
 

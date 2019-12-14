@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/gcfg.v1"
 	"object-storage-go/api-server/model"
@@ -28,6 +29,15 @@ func InitConfig() error {
 	if err != nil {
 		log.Errorf("read config file [%s] failed", constant.API_SERVER_CONFIG_FILEPATH)
 		os.Exit(1)
+	}
+	return nil
+}
+
+func GetFromHeader(context *gin.Context, h string) []string {
+	for k, v := range context.Request.Header {
+		if k == h {
+			return v
+		}
 	}
 	return nil
 }

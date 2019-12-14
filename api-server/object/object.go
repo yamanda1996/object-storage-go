@@ -7,9 +7,13 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"object-storage-go/api-server/es"
 	"object-storage-go/api-server/heartbeat"
 	"object-storage-go/api-server/locate"
 	"object-storage-go/api-server/objectstream"
+	"object-storage-go/api-server/utils"
+	"strconv"
 )
 
 func UploadFile(context *gin.Context)  {
@@ -18,10 +22,33 @@ func UploadFile(context *gin.Context)  {
 		context.String(http.StatusNotFound, "request parameter filename [%s] invalid", name)
 	}
 
+	hash := utils.GetFromHeader(context, "Digest")
+	if hash == nil {
+		log.Errorf("hash not found")
+		context.String(http.StatusBadRequest, "hash not found in header")
+	}
+
 	file, _ := context.FormFile("file")
 	r, _ := file.Open()
-	status, err := storeObject(r, name)
-	context.String(status, err.Error())
+	status, err := storeObject(r, url.PathEscape(hash[0]))
+	if err != nil {
+		log.Errorf("store [%s] file failed", name)
+		context.String(http.StatusInternalServerError, "store file failed")
+	}
+
+	size := utils.GetFromHeader(context, "Size")
+	if size == nil {
+		log.Errorf("size not found")
+		context.String(http.StatusBadRequest, "size not found in header")
+	}
+	s, _ := strconv.ParseInt(size[0], 10, 64)
+	err = es.AddVersion(name, hash[0], s)
+	if err != nil {
+		log.Errorf("add [%s] version failed", name)
+		context.String(http.StatusInternalServerError, "add version failed")
+	}
+
+	context.String(status, "upload file success")
 }
 
 func DownloadFile(context *gin.Context)  {
@@ -29,18 +56,54 @@ func DownloadFile(context *gin.Context)  {
 	if len(filename) <= 0 {
 		context.String(http.StatusNotFound, "request parameter filename [%s] invalid", filename)
 	}
-	stream, err := getStream(filename)
+
+	version := context.Query("version")
+	var hash string
+	if len(version) == 0 {
+		metadata, err := es.SearchLatestVersion(filename)
+		if err != nil {
+			log.Infof("get [%s] latest version failed", filename)
+			context.String(http.StatusInternalServerError, "download failed")
+		}
+		hash = metadata.Hash
+	}
+	i, _ := strconv.Atoi(version)
+	metadata, err := es.GetMetadata(filename, i)
+	if err != nil {
+		log.Errorf("get [%s] metadata for version [%d] failed", filename, i)
+		context.String(http.StatusInternalServerError, "download failed")
+	}
+	hash = metadata.Hash
+
+	stream, err := getStream(hash)
 	if err != nil {
 		context.String(http.StatusNotFound, "file [%s] not found", filename)
 	}
 
 	b, err := ioutil.ReadAll(stream)
-	log.Infof("receive content [%s] from data-server", string(b))
 	if err != nil {
 		log.Errorf("write to bytes failed")
 		context.String(http.StatusInternalServerError, "internal server error")
 	}
 	context.Data(http.StatusOK, "fileType", b)
+}
+
+func DeleteFile(context *gin.Context)  {
+	filename := context.Param("filename")
+	if len(filename) <= 0 {
+		context.String(http.StatusNotFound, "request parameter filename [%s] invalid", filename)
+	}
+	metadata, err := es.SearchLatestVersion(filename)
+	if err != nil {
+		log.Errorf("search [%s] latest version failed", filename)
+		context.String(http.StatusInternalServerError, "search latest version failed")
+	}
+	err = es.PutMetadata(filename, metadata.Version+1, 0, "")
+	if err != nil {
+		log.Errorf("logical delete file [%s] failed", filename)
+		context.String(http.StatusInternalServerError, "logical delete file failed")
+	}
+	context.String(http.StatusOK, "delete file success")
 }
 
 func storeObject(r io.Reader, name string) (int, error) {

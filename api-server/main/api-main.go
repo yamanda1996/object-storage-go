@@ -9,6 +9,7 @@ import (
 	"object-storage-go/api-server/model"
 	"object-storage-go/api-server/object"
 	"object-storage-go/api-server/utils"
+	"object-storage-go/api-server/version"
 	"os"
 	"strconv"
 )
@@ -35,8 +36,12 @@ func main()  {
 	router := gin.Default()
 
 	router.GET("/objects/:filename", object.DownloadFile)
-	router.GET("/locate/:filename", locate.LocateFile)
 	router.POST("/objects/:filename", object.UploadFile)
+	router.DELETE("/objects/:filename", object.DeleteFile)
+
+	router.GET("/version/:filename", version.GetVersion)
+
+	router.GET("/locate/:filename", locate.LocateFile)
 
 	router.Run(":" + strconv.Itoa(model.Config.ApiServerConfig.ApiServerPort))
 
