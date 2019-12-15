@@ -9,6 +9,7 @@ import (
 	"object-storage-go/data-server/locate"
 	"object-storage-go/data-server/model"
 	"object-storage-go/data-server/objects"
+	"object-storage-go/data-server/temp"
 	"object-storage-go/data-server/utils"
 	"os"
 	"strconv"
@@ -39,6 +40,11 @@ func main() {
 	router := gin.Default()
 	router.GET("/objects/:filename", objects.GetObject)
 	router.POST("/objects/:filename", objects.PutObject)
+
+	router.POST("/temp/:hash", temp.PostTemp)
+	router.PATCH("/temp/:uuid", temp.PatchTemp)
+	router.PUT("/temp/:uuid", temp.PutTemp)
+	router.DELETE("/temp/:uuid", temp.DeleteTemp)
 
 	router.Run(":" + strconv.Itoa(model.Config.DataServerConfig.DataServerPort))
 
