@@ -2,7 +2,7 @@ package etcd
 
 import (
 	"fmt"
-	"github.com/coreos/etcd/clientv3"
+	"go.etcd.io/etcd/clientv3"
 	"golang.org/x/net/context"
 	"time"
 )
@@ -76,6 +76,16 @@ func (r *ServiceRegister) ListenLeaseRespChan()  {
 	}
 }
 
-func (r *ServiceRegister) RegisteService() error {
-	
+func (r *ServiceRegister) RegisterService(k, v string) error {
+	kv := clientv3.NewKV(r.client)
+	_, err := kv.Put(context.TODO(), k, v, clientv3.WithLease(r.leaseResp.ID))
+	return err
+}
+
+// revoke lease
+func (r *ServiceRegister) RevokeLease() error {
+	r.cancel()
+	time.Sleep(2 * time.Second)
+	_, err := r.lease.Revoke(context.TODO(), r.leaseResp.ID)
+	return err
 }
