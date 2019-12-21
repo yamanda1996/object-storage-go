@@ -28,6 +28,12 @@ func UploadFile(context *gin.Context)  {
 		context.String(http.StatusBadRequest, "hash not found in header")
 	}
 
+	size := utils.GetFromHeader(context, "Size")
+	if size == nil {
+		log.Errorf("size not found")
+		context.String(http.StatusBadRequest, "size not found in header")
+	}
+
 	file, _ := context.FormFile("file")
 	r, _ := file.Open()
 	status, err := storeObject(r, url.PathEscape(hash[0]))
@@ -36,11 +42,6 @@ func UploadFile(context *gin.Context)  {
 		context.String(http.StatusInternalServerError, "store file failed")
 	}
 
-	size := utils.GetFromHeader(context, "Size")
-	if size == nil {
-		log.Errorf("size not found")
-		context.String(http.StatusBadRequest, "size not found in header")
-	}
 	s, _ := strconv.ParseInt(size[0], 10, 64)
 	err = es.AddVersion(name, hash[0], s)
 	if err != nil {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"object-storage-go/api-server/heartbeat"
 	"object-storage-go/api-server/locate"
 	"object-storage-go/api-server/model"
 	"object-storage-go/api-server/object"
@@ -32,7 +31,6 @@ func main()  {
 	log.Debug("start api server")
 	log.Debugf("rabbit mq address [%s]", model.Config.RabbitMqConfig.RabbitMqAddress)
 	log.Debug("api server address: " + model.Config.ApiServerConfig.ApiServerAddress)
-	go heartbeat.ListenHeartBeat()
 	router := gin.Default()
 
 	router.GET("/objects/:filename", object.DownloadFile)
