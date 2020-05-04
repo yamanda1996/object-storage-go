@@ -35,6 +35,8 @@ type DataServerConfig struct {
 	StorageRoot 					string
 	HeartBeatTimeInSeconds			string
 	BucketNumber 					int
+	TreeDepth 						int
+	TreeHeight 						int
 }
 
 type EtcdServerConfig struct {

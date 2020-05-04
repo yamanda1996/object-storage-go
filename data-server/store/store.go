@@ -2,15 +2,13 @@ package store
 
 import (
 	"fmt"
+	logger "github.com/sirupsen/logrus"
 	"object-storage-go/data-server/model"
 	"object-storage-go/data-server/utils"
 	"os"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
-	"time"
-
-	logger "github.com/sirupsen/logrus"
 )
 
 var mergeChan chan int
@@ -28,7 +26,6 @@ func NewHStore() (store *HStore, err error) {
 	}
 	mergeChan = nil
 	//cmem.DBRL.ResetAll()
-	st := time.Now()
 	store = new(HStore)
 	store.gcMgr = &GCMgr{stat: make(map[*Bucket]*GCState)}
 	store.buckets = make([]*Bucket, model.Conf.DataServerConfig.BucketNumber)
@@ -41,35 +38,27 @@ func NewHStore() (store *HStore, err error) {
 		return
 	}
 
-	for i := 0; i < Conf.NumBucket; i++ {
-		need := Conf.BucketsStat[i] > 0
-		found := store.buckets[i].State >= BUCKET_STAT_NOT_EMPTY
-		if need {
-			if !found {
-				err = store.allocBucket(i)
-				if err != nil {
-					return
-				}
+	for i := 0; i < model.Conf.DataServerConfig.BucketNumber; i++ {
+		if store.buckets[i].BucketStat.State < utils.BUCKET_STAT_NOT_EMPTY {
+			err = store.allocBucket(i)
+			if err != nil {
+				return
+			}
 
-			}
-			store.buckets[i].State = BUCKET_STAT_READY
-		} else {
-			if found {
-				logger.Warnf("found unexpect bucket %d", i)
-			}
 		}
+		store.buckets[i].State = utils.BUCKET_STAT_READY
 	}
 
 	var n int32
 	var wg = sync.WaitGroup{}
-	wg.Add(Conf.NumBucket)
-	errs := make(chan error, Conf.NumBucket)
-	for i := 0; i < Conf.NumBucket; i++ {
+	wg.Add(model.Conf.DataServerConfig.BucketNumber)
+	errs := make(chan error, model.Conf.DataServerConfig.BucketNumber)
+	for i := 0; i < model.Conf.DataServerConfig.BucketNumber; i++ {
 		go func(id int) {
 			defer wg.Done()
 			bkt := store.buckets[id]
-			if Conf.BucketsStat[id] > 0 {
-				err = bkt.open(id, GetBucketPath(id))
+			if store.buckets[id].State > utils.BUCKET_STAT_EMPTY {
+				err = bkt.open(id, utils.GetBucketPath(id))
 				if err != nil {
 					logger.Errorf("Error in bkt open %s", err.Error())
 					errs <- err
@@ -87,11 +76,18 @@ func NewHStore() (store *HStore, err error) {
 			return
 		}
 	}
-	if Conf.TreeDepth > 0 {
-		store.htree = newHTree(0, 0, Conf.TreeDepth+1)
+	if model.Conf.DataServerConfig.TreeDepth > 0 {
+		store.htree = NewHTree(0, 0, model.Conf.DataServerConfig.TreeDepth + 1)
 	}
-	logger.Infof("all %d bucket loaded, ready to serve, maxrss = %d, use time %s",
-		n, utils.GetMaxRSS(), time.Since(st))
+	return
+}
+
+func (store *HStore) allocBucket(bucketID int) (err error) {
+	dirpath := utils.GetBucketPath(bucketID)
+	if _, err = os.Stat(dirpath); err != nil {
+		err = os.MkdirAll(dirpath, 0755)
+	}
+	logger.Infof("allocBucket %s", dirpath)
 	return
 }
 
