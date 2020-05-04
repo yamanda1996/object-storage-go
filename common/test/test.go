@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"object-storage-go/common/etcd"
+	"go.etcd.io/etcd/clientv3"
+	"time"
 )
 
 var (
@@ -11,19 +13,39 @@ var (
 )
 
 func main()  {
-	register, err := etcd.NewServiceRegister(endpoints, timeout)
-	if err != nil {
-		fmt.Println("test new service register failed")
-		return
+
+	config := clientv3.Config{
+		Endpoints: endpoints,
+		DialTimeout: time.Duration(timeout) * time.Second,
 	}
 
-	register.RegisterService("/hello/world1", "人之初")
-	register.RegisterService("/hello/world2", "性本善")
+	client, _ := clientv3.New(config)
+	defer client.Close()
 
-	client, _ := etcd.NewDiscoveryClient(endpoints)
+	kv := clientv3.NewKV(client)
 
-	result, _ := client.DiscoveryService("/hello")
-	fmt.Printf("get from etcd server %v\n", result)
+	ctx, _ := context.WithTimeout(context.TODO(),
+		time.Duration(timeout) * time.Second)
+
+	putResp, _ := kv.Put(ctx, "/hello", "world666", clientv3.WithPrevKV())
+
+	getResp, _ := kv.Get(ctx, "/hello", clientv3.WithPrevKV())
+
+	fmt.Println(putResp.PrevKv)
+	fmt.Println(getResp.Kvs)
+	//register, err := common_etcd.NewServiceRegister(endpoints, timeout)
+	//if err != nil {
+	//	fmt.Println("test new service register failed")
+	//	return
+	//}
+	//
+	//register.RegisterService("/hello/world1", "人之初")
+	//register.RegisterService("/hello/world2", "性本善")
+
+	//client, _ := common_etcd.NewDiscoveryClient(endpoints)
+	//
+	//result, _ := client.DiscoveryService("/hello")
+	//fmt.Printf("get from etcd server %v\n", result)
 }
 
 

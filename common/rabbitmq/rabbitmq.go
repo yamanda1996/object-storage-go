@@ -5,7 +5,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 	"object-storage-go/api-server/model"
-	"strconv"
 	"strings"
 )
 
@@ -19,7 +18,7 @@ func GetRabbitMqDialUrl() string {
 		builder.WriteString(model.Config.RabbitMqConfig.RabbitMqUser)
 		builder.WriteString(":" + model.Config.RabbitMqConfig.RabbitMqPwd)
 		builder.WriteString("@" + model.Config.RabbitMqConfig.RabbitMqAddress)
-		builder.WriteString(":" + strconv.Itoa(model.Config.RabbitMqConfig.RabbitMqPort))
+		builder.WriteString(":" + model.Config.RabbitMqConfig.RabbitMqPort)
 		RabbitMqDialUrl = builder.String()
 	}
 	return RabbitMqDialUrl

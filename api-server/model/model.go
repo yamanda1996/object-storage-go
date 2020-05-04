@@ -4,23 +4,31 @@ var Config = struct {
 	RabbitMqConfig 					RabbitMqConfig
 	ApiServerConfig 				ApiServerConfig
 	ElasticSearchConfig 			ElasticSearchConfig
+	EtcdServerConfig 				EtcdServerConfig
 }{}
 
 type RabbitMqConfig struct {
 	RabbitMqAddress 				string
-	RabbitMqPort					int
+	RabbitMqPort					string
 	RabbitMqUser					string
 	RabbitMqPwd 					string
 }
 
 type ApiServerConfig struct {
 	ApiServerAddress 				string
-	ApiServerPort 					int
+	ApiServerPort 					string
+	ApiServerIndex 					string
+	ApiServerEtcdPrefix 			string
 }
 
 type ElasticSearchConfig struct {
 	ElasticSearchAddress			string
-	ElasticSearchPort				int
+	ElasticSearchPort				string
+}
+
+type EtcdServerConfig struct {
+	EtcdServerAddress				string
+	EtcdServerPort					string
 }
 
 

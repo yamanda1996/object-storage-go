@@ -1,0 +1,4 @@
+time="2020-03-22T03:23:04+08:00" level=debug msg="Init log success"
+time="2020-03-22T03:23:09+08:00" level=debug msg="Start to deal heartbeat"
+time="2020-03-22T03:23:09+08:00" level=debug msg="Prefix is /yamanda/object-storage/data-server/bj/heartbeat/"
+time="2020-03-22T03:23:09+08:00" level=debug msg="Timestamp �"

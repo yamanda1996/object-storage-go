@@ -1,0 +1,15 @@
+syntax = "proto3";
+package schedulerpb;
+
+service Scheduler {
+    rpc GetDataServer(CommonRequest) returns (DataServer) {}
+}
+
+message DataServer {
+    string address                       = 1;
+    string port                          = 2;
+}
+
+message CommonRequest {
+
+}

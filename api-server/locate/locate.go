@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"object-storage-go/api-server/rabbitmq"
+	"object-storage-go/common/rabbitmq"
 	"strconv"
 	"time"
 )

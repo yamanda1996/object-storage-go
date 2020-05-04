@@ -29,3 +29,7 @@ this is a distributed object storage system in go
 ## find object
 ![](https://github.com/yamanda1996/object-storage-go/blob/master/images/object_storage_struct_pic1.png)
 
+## ETCD
+ETCD用来作为心跳检测的工具，data-server定时（60s）向etcd的指定路径中汇报心跳，scheduler收集这些心跳信息并维护data-server的状态信息，如果超过一个三个周期未收到心跳，则认为data-server处于error状态。
+
+

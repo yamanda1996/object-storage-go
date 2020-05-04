@@ -1,0 +1,20 @@
+syntax = "proto3";
+package objectpb;
+
+service Object {
+    rpc UploadObject(stream ObjectChunk) returns (UploadReply) {}
+
+}
+
+message ObjectChunk {
+    bytes   buffer        = 1;
+    int64   size          = 2;
+    string  hash          = 3;
+    string  filename      = 4;
+    int64   timestamp     = 5;
+}
+
+message UploadReply {
+    bool    success       = 1;
+    int64   length        = 2;
+}

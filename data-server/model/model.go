@@ -1,24 +1,12 @@
 package model
 
-var Config = struct {
-	RabbitMqConfig 					RabbitMqConfig
-	DataServerConfig 				DataServerConfig
-}{}
-
-type RabbitMqConfig struct {
-	RabbitMqAddress 				string
-	RabbitMqPort					int
-	RabbitMqUser					string
-	RabbitMqPwd 					string
+type HeartBeat struct {
+	DataServerAddress 	string
+	Timestamp 			int64
+	CpuUsage 			float64
+	MemUsage 			float64
+	DiskUsage 			float64
 }
-
-type DataServerConfig struct {
-	DataServerAddress 				string
-	DataServerPort 					int
-	StorageRoot						string
-}
-
-
 
 
 
